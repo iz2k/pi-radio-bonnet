@@ -10,6 +10,9 @@ class Si4731:
     REFCLK_FREQ = 34406
     RECLK_GPIO = 4
 
+    RST_GPIO = 26
+    SEN_GPIO = 16
+
     # i2c bus controller
     i2c = None
 
@@ -33,6 +36,13 @@ class Si4731:
         pi = pigpio.pi()
         pi.hardware_clock(self.RECLK_GPIO, self.REFCLK_FREQ)
         self.logger.debug("REFCLK enabled")
+        pi.set_mode(self.RST_GPIO, pigpio.OUTPUT)
+        pi.set_mode(self.SEN_GPIO, pigpio.OUTPUT)
+        pi.write(self.SEN_GPIO, 1)
+        self.logger.debug("/SEN set high")
+        time.sleep(0.01)
+        pi.write(self.RST_GPIO, 1)
+        self.logger.debug("/RST set high")
         self.i2c = smbus.SMBus(1)
         self.logger.debug("I2C bus open")
 

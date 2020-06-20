@@ -1,5 +1,5 @@
 #Si4731 i2c address 0x63 (/SEN=1) or 0x11 (/SEN=0)
-I2C_ADDRESS=0x11
+I2C_ADDRESS=0x63
 
 # Commands
 CMD_POWER_UP=0x01
