@@ -36,13 +36,19 @@ class Si4731:
         pi = pigpio.pi()
         pi.hardware_clock(self.RECLK_GPIO, self.REFCLK_FREQ)
         self.logger.debug("REFCLK enabled")
+        
+        # Reset the device
         pi.set_mode(self.RST_GPIO, pigpio.OUTPUT)
         pi.set_mode(self.SEN_GPIO, pigpio.OUTPUT)
+        pi.write(self.RST_GPIO, 0)
+        self.logger.debug("/RST set low")
         pi.write(self.SEN_GPIO, 1)
         self.logger.debug("/SEN set high")
         time.sleep(0.01)
         pi.write(self.RST_GPIO, 1)
         self.logger.debug("/RST set high")
+        
+        # Initialize i2c communication
         self.i2c = smbus.SMBus(1)
         self.logger.debug("I2C bus open")
 
