@@ -1,6 +1,5 @@
-import SiRadio
+from si4731 import Si4731
 
-radio = SiRadio.Si4731()
-radio.init()
+radio=Si4731()
 radio.set_volume(40)
-radio.tune(97.2)
+radio.fm_tune(97.2)

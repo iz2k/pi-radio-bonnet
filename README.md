@@ -9,7 +9,8 @@ Besides the radio receiver, the PCB also features two units of the MAX98357A 3W 
 
 The I2S audio interface is used for all devices, where the Pi acts as the master device reading digital audio from the radio receiver through the I2S_DIN line, and providing digital audio data to the amplifiers through the I2S_DOUT line. 
 
-![3d-pi-radio-bonnet](https://user-images.githubusercontent.com/57298545/85230418-4935b180-b3f0-11ea-8f67-9b911e6a6f26.png)
+![Pi Radio Bonnet](img/PiRadioBonnet.jpg)
+![Bonnet On Pi Zero W](img/PiRadioBonnetOnPiZeroW.jpg)
 
 ## Raspberry Pi setup
 
