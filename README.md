@@ -3,7 +3,7 @@ Si473x i2c/i2s AM/FM radio receiver for Rasperrby Pi
 
 ## Hardware
 
-A custom Pi Radio Bonnet is included in this project. The PCB features the SI4731-D60-GM IC, an AM/FM Broadcast Radio Receiver with RDS/RBDS. The reference clock is provided from the Pi through a hardware clock capable GPIO, and the I2C interface is used to control the functionality. i2s
+A custom Pi Radio Bonnet is included in this project. The PCB features the SI4731-D60-GM IC, an AM/FM Broadcast Radio Receiver with RDS/RBDS. The reference clock is provided from the Pi through a hardware clock capable GPIO, and the I2C interface is used to control the functionality.
 
 Besides the radio receiver, the PCB also features two units of the MAX98357A 3W PCM Amplifier, providing high quality stereo output.
 
