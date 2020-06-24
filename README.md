@@ -258,6 +258,15 @@ In order to initialize the radio receiver, the REFCLK clock has to be enabled an
 
 A python programm is included in the project to do all of this for you. Before running the programm, some dependencies have to be installed.
 
+### Enable I2C
+
+First, enable the I2C hardware on the Pi:
+
+``` bash
+sudo raspi-config
+ -> Interface options -> Enable I2C
+```
+
 ### PIGPIO
 
 The control of the GPIOs for REFCLK and RST and SEN signals is done by means of the pigpio deamon. This is a low level GPIO controller that can be commanded through other programms like the python program used in this project.
