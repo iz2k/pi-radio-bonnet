@@ -1,5 +1,5 @@
 import pigpio
-import smbus
+import smbus2
 import time
 import logging
 from enum import Enum
@@ -11,7 +11,7 @@ class Si4731:
         RST_GPIO = 26
         SEN_GPIO = 16
         RECLK_GPIO = 4
-        REFCLK_FREQ = 34406
+        REFCLK_FREQ = 32768
 
     class CMDSET(Enum):
         POWER_UP=0x01
@@ -22,6 +22,7 @@ class Si4731:
         FM_TUNE_FREQ=0x20
         FM_TUNE_STATUS=0x22
         GET_INT_STATUS=0x14
+        GET_RDS_STATUS=0x24
 
     class PROPS(Enum):
         REFCLK_FREQ = 0x0201
@@ -29,6 +30,9 @@ class Si4731:
         DIGITAL_OUTPUT_SAMPLE_RATE = 0x0104
         DIGITAL_OUTPUT_FORMAT = 0x0102
         RX_VOLUME = 0x4000
+        FM_RDS_INT_SOURCE = 0x1500
+        FM_RDS_INT_FIFO_COUNT = 0x1501
+        FM_RDS_CONFIG = 0x1502
 
     class RFMODE(Enum):
         LW = 0
@@ -49,6 +53,11 @@ class Si4731:
         ERR = 0x40
         STCINT = 0x01
         INTACK = 0x01
+        RDSINT = 0x04
+
+    class FM_RDS_FLAGS(Enum):
+        RDSRECV = 0x0001
+        NOERRORS = 0xAA01
 
     def __init__(self):
         self.create_logger()
@@ -85,12 +94,16 @@ class Si4731:
 
         # Wait to ensure reset of device
         time.sleep(0.1)
+
         # Set /RST high
         self.pi.write(self.HW.RST_GPIO.value, 1)
         self.logger.debug("Device Reset!")
 
+        # Wait to ensure reset of device
+        time.sleep(0.1)
+
         # Initialize i2c communication
-        self.i2c = smbus.SMBus(1)
+        self.i2c = smbus2.SMBus(1)
         self.logger.debug("I2C bus open")
 
     def write_cmd(self, cmd, args):
@@ -100,19 +113,43 @@ class Si4731:
         self.i2c.write_i2c_block_data(self.HW.I2C_ADDRESS.value, cmd.value, args)
         #self.logger.debug("Command sent: " + cmd.name + ", arguments: " + str(args))
 
+    def read_cmd(self, cmd, nbytes):
+        # Wait Clear To Send flag
+        self.wait_cts()
+        # Write command and read data from i2c bus
+        return self.i2c.read_i2c_block_data(self.HW.I2C_ADDRESS.value, cmd.value, nbytes)
+
+    def write_read_cmd(self, cmd, write, nread):
+        # Write command and ACK INT
+        wr=[cmd.value]
+        wr.extend(write)
+        write = smbus2.i2c_msg.write(self.HW.I2C_ADDRESS.value, wr)
+        # Read status
+        read = smbus2.i2c_msg.read(self.HW.I2C_ADDRESS.value, nread)
+        # Execute I2C operation
+        self.i2c.i2c_rdwr(write, read)
+        # Convert response to list
+        return list(read)
+
+
+    def get_status(self):
+        return self.i2c.read_byte(self.HW.I2C_ADDRESS.value)
+
     def wait_cts(self):
-        status = 0
-        #self.logger.debug("Waiting for CTS...")
-        while not status & self.FLAGS.CTS.value:
-            status = self.i2c.read_byte(self.HW.I2C_ADDRESS.value)
+        while not self.get_status() & self.FLAGS.CTS.value:
+            time.sleep(0.001)
+
+    def get_int_status(self, intFlag):
+        self.write_cmd(self.CMDSET.GET_INT_STATUS, [])
+        if self.get_status() & intFlag.value:
+            return True
+        else:
+            return False
 
     def wait_int(self, interruptType):
-        status = 0
-        self.logger.debug("Waiting for " + interruptType.name + " interrupt...")
-        while not status & interruptType.value:
-            self.write_cmd(self.CMDSET.GET_INT_STATUS, [])
-            time.sleep(0.1)
-            status = self.i2c.read_byte(self.HW.I2C_ADDRESS.value)
+        #self.logger.debug("Waiting for " + interruptType.name + " interrupt...")
+        while not self.get_int_status(interruptType):
+            time.sleep(0.001)
 
     def power_up(self, outmode):
         # Create POWER_UP command
@@ -122,6 +159,18 @@ class Si4731:
         # Send command
         self.write_cmd(cmd, args)
         self.logger.debug("Command sent: " + cmd.name + " with OUTMODE: " + outmode.name + " | " + str(args))
+
+    def get_revision(self):
+        # Send command
+        resp=self.read_cmd(self.CMDSET.GET_REV, 9)
+        partnumber = 'Si47' + str(resp[1])
+        firmware = chr(resp[2]) + '.' + chr(resp[3])
+        compfirmware = chr(resp[6]) + '.' + chr(resp[7])
+        chiprev = chr(resp[8])
+        self.logger.debug('Part Number: ' + partnumber)
+        self.logger.debug('Firmware Revision: ' + firmware)
+        self.logger.debug('Component Firmware Revision: ' + compfirmware)
+        self.logger.debug('Chip Revision: ' + chiprev)
 
     def write_property(self, prop, val):
         # Create SET_PROPERTY command
@@ -136,6 +185,8 @@ class Si4731:
     def init_radio(self):
         # POWER ON
         self.power_up(self.OUTMODE.BOTH)
+        # Get silicon revision
+        self.get_revision()
         # REFCLK_FREQ
         self.write_property(self.PROPS.REFCLK_FREQ, self.HW.REFCLK_FREQ.value)
         # REFCLK_PRESCALE
@@ -144,6 +195,12 @@ class Si4731:
         self.write_property(self.PROPS.DIGITAL_OUTPUT_FORMAT, self.OUTMODE.BITWIDTH24.value)
         # Sample rate 48000
         self.write_property(self.PROPS.DIGITAL_OUTPUT_SAMPLE_RATE, 48000)
+        # Configure RDS interrupt source
+        self.write_property(self.PROPS.FM_RDS_INT_SOURCE, self.FM_RDS_FLAGS.RDSRECV.value)
+        # Set minimum RDS data for interrupt
+        self.write_property(self.PROPS.FM_RDS_INT_FIFO_COUNT, 4)
+        # Set accepted RDS data
+        self.write_property(self.PROPS.FM_RDS_CONFIG, self.FM_RDS_FLAGS.NOERRORS.value)
 
     def set_volume(self, vol):
         # Volume value goes from 0 to 63
@@ -162,8 +219,74 @@ class Si4731:
         # Send command
         self.write_cmd(cmd, args)
         self.logger.debug("Command sent: " + cmd.name + " with FREQUENCY: " + str(freq_MHz) + " | " + str(args))
-        # Wait ACK interrupt
+        # Wait TUNE DONE interrupt
         self.wait_int(self.FLAGS.INTACK)
-        # ACK INT TUNED
-        self.write_cmd(self.CMDSET.FM_TUNE_STATUS, [self.FLAGS.INTACK.value])
-        self.logger.debug(self.FLAGS.INTACK.name + " acknowledged.")
+        self.logger.debug("Tuning done!")
+        # ACK Interrupt and read status
+        self.get_tune_status()
+
+    def get_tune_status(self):
+        # Send FM_TUNE_STATUS command, ACK INT, and read 8 bytes
+        resp=self.write_read_cmd(self.CMDSET.FM_TUNE_STATUS, [self.FLAGS.INTACK.value], 8)
+
+        # Process response
+        validfreq = str(resp[1])
+        freq = str(resp[2]*255 + resp[3])
+        rssi = str(resp[4])
+        snr = str(resp[5])
+        tuncap = str(resp[7])
+        self.logger.debug('Valid freq.: ' + validfreq)
+        self.logger.debug('Fequency: ' + freq)
+        self.logger.debug('RSSI: ' + rssi)
+        self.logger.debug('SNR: ' + snr)
+        self.logger.debug('Antenna tuning capacitor: ' + tuncap)
+
+    def wait_rds(self):
+        self.wait_int(self.FLAGS.RDSINT)
+        self.logger.debug("RDS data available.")
+
+
+    def get_rds_status(self):
+        # Send GET_RDS_STATUS command, ACK INT, and read 8 bytes
+        resp=self.write_read_cmd(self.CMDSET.GET_RDS_STATUS, [self.FLAGS.INTACK.value], 13)
+        self.logger.debug("__________RDS STATUS___________")
+        self.logger.debug("> STATUS: " + hex(resp[0]))
+        self.logger.debug("> RESP1: " + hex(resp[1]))
+        self.logger.debug("> RESP2: " + hex(resp[2]))
+        self.logger.debug("> FIFO USED: " + str(resp[3]))
+        blocka=resp[4]*255 + resp[5]
+        self.logger.debug("> BLOCKA: " + hex(blocka))
+        self.logger.debug("-> PIC: " + hex(blocka))
+        blockb=resp[6]*255 + resp[7]
+        gtype=(blockb & 0xF000) >> 12
+        b0=(blockb & 0x0800) >> 11
+        tp=(blockb & 0x0400) >> 10
+        pty=(blockb & 0x03E0) >> 5
+        aux=(blockb & 0x001F)
+        self.logger.debug("> BLOCKB: " + hex(blockb))
+        self.logger.debug("-> GTYPE: " + str(gtype))
+        self.logger.debug("-> B0: " + str(b0))
+        self.logger.debug("-> TP: " + str(tp))
+        self.logger.debug("-> PTY: " + str(pty))
+        self.logger.debug("-> AUX: " + str(aux))
+        if gtype==0:
+            ta=(aux & 0x10) >> 4
+            ms=(aux & 0x08) >> 3
+            di=(aux & 0x04) >> 2
+            c=(aux & 0x03)
+            self.logger.debug("--> TA: " + str(ta))
+            self.logger.debug("--> MS: " + str(ms))
+            self.logger.debug("--> DI: " + str(di))
+            self.logger.debug("--> C: " + str(c))
+        if gtype==2:
+            ab=(aux & 0x10) >> 4
+            c=(aux & 0x0F)
+            self.logger.debug("--> AB: " + str(ab))
+            self.logger.debug("--> C: " + str(c))
+
+        self.logger.debug("> BLOCKC: " + hex(resp[8]*255 + resp[9]) + '(' + chr(resp[8]) + chr(resp[9]) + ')')
+        self.logger.debug("> BLOCKD: " + hex(resp[10]*255 + resp[11]) + '(' + chr(resp[10]) + chr(resp[11]) + ')')
+        self.logger.debug("> RESP12: " + hex(resp[12]))
+
+
+
