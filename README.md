@@ -316,13 +316,14 @@ sudo pip3 install smbus
 
 ## Usage
 
-In order to tune the radio receiver, execute the python program. You may want to modify main.py in order to set a different frequency.
+In order to tune the radio receiver, execute the python program.
 
 ``` bash
 python3 sw/python/main.py
 ```
 
-Try recording from the capture device (stop the reccording with CTRL+C):
+Try recording from the capture device (stop the recording with CTRL+C):
+
 ``` bash
 arecord -D default -c2 -r 48000 -f S32_LE -t wav -V steres -v test.wav
 ```
@@ -338,14 +339,6 @@ Now, you can also try piping directly the audio from the radio receiver to the s
 ``` bash
  arecord -c2 -r 48000 -f S32_LE -t wav -V stereo | sudo aplay
 ```
-Some improvements are still missing to avoid using sudo and keeping the system alive after closing the pipe.
+The python software allows seeking radio stations by using left and right arrows. The up and down arrows allow changing the volume tin the mixer. The PS filed (Radio Station) and RadioText field of the RDS signal, if available, is also shown under the tuned frequency.
 
-You can also control the volume of the soundcard with alsamixer:
-``` bash
-alsamixer
-```
-
-And store the new values as default if desired:
-``` bash
-sudo alsactl store
-```
+![Radio Receiver Software](img/RadioReceiverSw.png)

@@ -13,7 +13,7 @@ class RDS:
 
         def update_string(self):
             self.string = ''.join(self.chars)
-            self.string = self.string.replace('  ', '')
+            self.string = self.string.replace('  ', '').strip()
 
     def __init__(self):
             self.PS = self.CHAR_ARRAY(8)
