@@ -3,6 +3,7 @@ import smbus2
 import time
 import logging
 from enum import Enum
+from .rds import RDS
 
 class Si4731:
 
@@ -59,10 +60,12 @@ class Si4731:
         RDSRECV = 0x0001
         NOERRORS = 0xAA01
 
+
     def __init__(self):
         self.create_logger()
         self.init_hw()
         self.init_radio()
+        self.rds = RDS()
 
     def create_logger(self):
         # create logger
@@ -243,50 +246,22 @@ class Si4731:
 
     def wait_rds(self):
         self.wait_int(self.FLAGS.RDSINT)
-        self.logger.debug("RDS data available.")
+        #self.logger.debug("RDS data available.")
 
 
     def get_rds_status(self):
         # Send GET_RDS_STATUS command, ACK INT, and read 8 bytes
         resp=self.write_read_cmd(self.CMDSET.GET_RDS_STATUS, [self.FLAGS.INTACK.value], 13)
-        self.logger.debug("__________RDS STATUS___________")
-        self.logger.debug("> STATUS: " + hex(resp[0]))
-        self.logger.debug("> RESP1: " + hex(resp[1]))
-        self.logger.debug("> RESP2: " + hex(resp[2]))
-        self.logger.debug("> FIFO USED: " + str(resp[3]))
-        blocka=resp[4]*255 + resp[5]
-        self.logger.debug("> BLOCKA: " + hex(blocka))
-        self.logger.debug("-> PIC: " + hex(blocka))
-        blockb=resp[6]*255 + resp[7]
-        gtype=(blockb & 0xF000) >> 12
-        b0=(blockb & 0x0800) >> 11
-        tp=(blockb & 0x0400) >> 10
-        pty=(blockb & 0x03E0) >> 5
-        aux=(blockb & 0x001F)
-        self.logger.debug("> BLOCKB: " + hex(blockb))
-        self.logger.debug("-> GTYPE: " + str(gtype))
-        self.logger.debug("-> B0: " + str(b0))
-        self.logger.debug("-> TP: " + str(tp))
-        self.logger.debug("-> PTY: " + str(pty))
-        self.logger.debug("-> AUX: " + str(aux))
-        if gtype==0:
-            ta=(aux & 0x10) >> 4
-            ms=(aux & 0x08) >> 3
-            di=(aux & 0x04) >> 2
-            c=(aux & 0x03)
-            self.logger.debug("--> TA: " + str(ta))
-            self.logger.debug("--> MS: " + str(ms))
-            self.logger.debug("--> DI: " + str(di))
-            self.logger.debug("--> C: " + str(c))
-        if gtype==2:
-            ab=(aux & 0x10) >> 4
-            c=(aux & 0x0F)
-            self.logger.debug("--> AB: " + str(ab))
-            self.logger.debug("--> C: " + str(c))
+        blocka=resp[4]*256 + resp[5]
+        blockb=resp[6]*256 + resp[7]
+        blockc=resp[8]*256 + resp[9]
+        blockd=resp[10]*256 + resp[11]
+        gtype=self.rds.process_rds_blocks(blocka, blockb, blockc, blockd)
+        if(gtype == RDS.GTYPES.STATION_NAME.value):
+            self.logger.debug("Station Name: " + self.rds.PS.string)
+        if(gtype == RDS.GTYPES.RADIO_TEXT.value):
+            self.logger.debug("Radio Text: " + self.rds.RadioTextA.string)
 
-        self.logger.debug("> BLOCKC: " + hex(resp[8]*255 + resp[9]) + '(' + chr(resp[8]) + chr(resp[9]) + ')')
-        self.logger.debug("> BLOCKD: " + hex(resp[10]*255 + resp[11]) + '(' + chr(resp[10]) + chr(resp[11]) + ')')
-        self.logger.debug("> RESP12: " + hex(resp[12]))
 
 
 
