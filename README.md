@@ -266,6 +266,13 @@ First, enable the I2C hardware on the Pi:
 sudo raspi-config
  -> Interface options -> Enable I2C
 ```
+### PIP3
+
+Ensure pip3 is available to install python3 packages:
+``` bash
+sudo apt-get install python3-pip
+```
+
 
 ### PIGPIO
 
@@ -293,13 +300,18 @@ Finally, install the python3 package to control the pigpio deamon from the progr
 ``` bash
 sudo apt-get install python3-pigpio
 ```
+or
+``` bash
+sudo pip3 install pigpio
+```
 
-### SMBUS
 
-The python program uses the SMBUS package for the I2C communication. Install it as follows:
+### SMBUS2
+
+The python program uses the SMBUS2 package for the I2C communication. Install it as follows:
 
 ``` bash
-sudo apt-get install python3-smbus
+sudo pip3 install smbus
 ```
 
 ## Usage
