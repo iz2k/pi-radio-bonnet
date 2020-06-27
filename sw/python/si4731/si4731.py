@@ -234,7 +234,7 @@ class Si4731:
 
         # Process response
         validfreq = str(resp[1])
-        freq = str(resp[2]*255 + resp[3])
+        freq = str(resp[2]*256 + resp[3])
         rssi = str(resp[4])
         snr = str(resp[5])
         tuncap = str(resp[7])
