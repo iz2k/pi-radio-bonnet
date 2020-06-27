@@ -16,7 +16,7 @@ class RDS:
 
     def __init__(self):
             self.PS = self.CHAR_ARRAY(8)
-            self.RadioTextA = self.CHAR_ARRAY(512)
+            self.RadioTextA = self.CHAR_ARRAY(64)
 
     def process_rds_blocks(self, blockA, blockB, blockC, blockD):
         gtype=(blockB & 0xF000) >> 12
