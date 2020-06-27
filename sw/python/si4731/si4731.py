@@ -68,17 +68,28 @@ class Si4731:
         RDSRECV = 0x0001
         NOERRORS = 0xAA01
 
+    class STATION_INFO():
+        Valid = False
+        Frequency = None
+        RSSI = None
+        SNR = None
+        Pilot = None
+        Stblend = None
+        Multipath = None
+        Freq_offset = None
 
     def __init__(self):
         self.create_logger()
         self.init_hw()
         self.init_radio()
+        self.station = self.STATION_INFO()
         self.rds = RDS()
 
     def create_logger(self):
         # create logger
         self.logger = logging.getLogger('Si4731')
-        self.logger.setLevel(logging.DEBUG)
+        #self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.NOTSET)
         # create console handler and set level to debug
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
@@ -232,7 +243,7 @@ class Si4731:
         self.logger.debug("Command sent: " + cmd.name + " with FREQUENCY: " + str(freq_MHz) + " | " + str(args))
         self.wait_tune_done()
 
-    def fm_seek(self):
+    def fm_seek_up(self):
         # Create FM_TUNE_FREQ command
         cmd = self.CMDSET.FM_SEEK_START
         args = [self.SEEKMODE.UD_UP.value + self.SEEKMODE.WH_WRAP.value]
@@ -241,7 +252,18 @@ class Si4731:
         self.logger.debug("Command sent: " + cmd.name + " | " + str(args))
         self.wait_tune_done()
 
+    def fm_seek_down(self):
+        # Create FM_TUNE_FREQ command
+        cmd = self.CMDSET.FM_SEEK_START
+        args = [self.SEEKMODE.UD_DOWN.value + self.SEEKMODE.WH_WRAP.value]
+        # Send command
+        self.write_cmd(cmd, args)
+        self.logger.debug("Command sent: " + cmd.name + " | " + str(args))
+        self.wait_tune_done()
+
     def wait_tune_done(self):
+        # Reset RDS data
+        self.rds.reset()
         # Wait TUNE DONE interrupt
         self.wait_int(self.FLAGS.INTACK)
         self.logger.debug("Tuning done!")
@@ -253,17 +275,18 @@ class Si4731:
         resp=self.write_read_cmd(self.CMDSET.FM_TUNE_STATUS, [self.FLAGS.INTACK.value], 8)
 
         # Process response
-        validfreq = resp[1] & 0x01
-        freq = (resp[2]<<8) | resp[3]
-        rssi = resp[4]
-        snr = resp[5]
-        mult = resp[6]
+        self.station.Valid = resp[1] & 0x01
+        self.station.Frequency = ((resp[2]<<8) | resp[3])/100
+        self.station.RSSI = resp[4]
+        self.station.SNR = resp[5]
+        self.station.Multipath = resp[6]
 
-        self.logger.debug('Valid freq.: ' + str(validfreq))
-        self.logger.debug('Fequency: ' + str(freq))
-        self.logger.debug('RSSI: ' + str(rssi))
-        self.logger.debug('SNR: ' + str(snr))
-        self.logger.debug('Multipath: ' + str(mult))
+        # Print info
+        self.logger.debug('Valid freq.: ' + str(self.station.Valid))
+        self.logger.debug('Fequency: ' + str(self.station.Frequency))
+        self.logger.debug('RSSI: ' + str(self.station.RSSI))
+        self.logger.debug('SNR: ' + str(self.station.SNR))
+        self.logger.debug('Multipath: ' + str(self.station.Multipath))
 
 
     def get_rsq_status(self):
@@ -271,43 +294,38 @@ class Si4731:
         resp=self.write_read_cmd(self.CMDSET.FM_RSQ_STATUS, [0], 8)
 
         # Process response
-        valid = resp[2] & 0x01
-        pilot = (resp[3] & 0x80) >> 7
-        stblend = resp[3] & 0x7F
-        rssi = resp[4]
-        snr = resp[5]
-        mult = resp[6]
-        freqoff = resp[7]
+        self.station.Valid = resp[2] & 0x01
+        self.station.Pilot = (resp[3] & 0x80) >> 7
+        self.station.Stblend = resp[3] & 0x7F
+        self.station.RSSI = resp[4]
+        self.station.SNR = resp[5]
+        self.station.Multipath = resp[6]
+        self.station.Freq_offset = resp[7]
 
         # Print info
-        self.logger.debug('Valid freq.: ' + str(valid))
-        self.logger.debug('Pilot: ' + str(pilot))
-        self.logger.debug('Stereo Blend: ' + str(stblend))
-        self.logger.debug('RSSI: ' + str(rssi))
-        self.logger.debug('SNR: ' + str(snr))
-        self.logger.debug('Multipath: ' + str(mult))
-        self.logger.debug('Freq. offset: ' + str(freqoff))
+        self.logger.debug('Valid freq.: ' + str(self.station.Valid))
+        self.logger.debug('Pilot: ' + str(self.station.Pilot))
+        self.logger.debug('Stereo Blend: ' + str(self.station.Stblend))
+        self.logger.debug('RSSI: ' + str(self.station.RSSI))
+        self.logger.debug('SNR: ' + str(self.station.SNR))
+        self.logger.debug('Multipath: ' + str(self.station.Multipath))
+        self.logger.debug('Freq. offset: ' + str(self.station.Freq_offset))
 
     def wait_rds(self):
         self.wait_int(self.FLAGS.RDSINT)
 
+    def check_rds(self):
+        return self.get_int_status(self.FLAGS.RDSINT)
+
     def get_rds_status(self):
-        rds_data_available=True
-        while(rds_data_available):
-            # Send GET_RDS_STATUS command, ACK INT, and read 8 bytes
-            resp=self.write_read_cmd(self.CMDSET.GET_RDS_STATUS, [self.FLAGS.INTACK.value], 13)
-            fifoused=resp[3]
-            if fifoused == 0:
-                rds_data_available=False
-            blocka=resp[4]*256 + resp[5]
-            blockb=resp[6]*256 + resp[7]
-            blockc=resp[8]*256 + resp[9]
-            blockd=resp[10]*256 + resp[11]
-            gtype=self.rds.process_rds_blocks(blocka, blockb, blockc, blockd)
-            if(gtype == RDS.GTYPES.STATION_NAME.value):
-                self.logger.debug("Station Name: " + self.rds.PS.string)
-            if(gtype == RDS.GTYPES.RADIO_TEXT.value):
-                self.logger.debug("Radio Text: " + self.rds.RadioTextA.string)
+        # Send GET_RDS_STATUS command, ACK INT, and read 8 bytes
+        resp=self.write_read_cmd(self.CMDSET.GET_RDS_STATUS, [self.FLAGS.INTACK.value], 13)
+        fifoused=resp[3]
+        blocka=resp[4]*256 + resp[5]
+        blockb=resp[6]*256 + resp[7]
+        blockc=resp[8]*256 + resp[9]
+        blockd=resp[10]*256 + resp[11]
+        self.rds.process_rds_blocks(blocka, blockb, blockc, blockd)
 
 
 

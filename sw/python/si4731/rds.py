@@ -13,8 +13,13 @@ class RDS:
 
         def update_string(self):
             self.string = ''.join(self.chars)
+            self.string = self.string.replace('  ', '')
 
     def __init__(self):
+            self.PS = self.CHAR_ARRAY(8)
+            self.RadioTextA = self.CHAR_ARRAY(64)
+
+    def reset(self):
             self.PS = self.CHAR_ARRAY(8)
             self.RadioTextA = self.CHAR_ARRAY(64)
 
