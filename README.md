@@ -31,7 +31,7 @@ For simplicity, the already existing driver for the I2S microphone ICS43432 from
 ``` bash
 sudo apt-get install raspberrypi-kernel-headers
 ```
-Then just download the driver source and compile ir:
+Then just download the driver source and compile it:
 ``` bash
 mkdir ics43432
 cd ics43432
@@ -51,9 +51,9 @@ lsmod | grep ics43432
 ```
 You should see some modules with the ics43432 name on it loaded.
 
-### Create dual I2S soundcard overlay
+### Create dual I2S sound-card overlay
 
-Now you need to create a soundcard overlay pointing to the i2s audio drivers. create the overlay configuration file:
+Now you need to create a sound-card overlay pointing to the i2s audio drivers. create the overlay configuration file:
 ``` bash
 nano i2s-soundcard-overlay.dts
 ```
@@ -154,7 +154,7 @@ sudo nano /boot/config.txt
 sudo reboot
 ```
 
-You should now already see the new playback and capture devies by running:
+You should now already see the new playback and capture devices by running:
 ``` bash
 aplay -l
 **** List of PLAYBACK Hardware Devices ****
@@ -172,7 +172,7 @@ card 0: sndrpisimplecar [sndrpisimplecar], device 1: bcm2835-i2s-ics43432-hifi i
 
 ### Add ALSA configuration
 
-In order to improve the integration of the new soundcard in the OS let's add an ALSA configuration file.
+In order to improve the integration of the new sound-card in the OS let's add an ALSA configuration file.
 ``` bash
 sudo nano /etc/asound.conf
 ```
@@ -256,7 +256,7 @@ Prior to testing the radio receiver, the device has to be initiated by software.
 
 In order to initialize the radio receiver, the REFCLK clock has to be enabled and a reset pulse has to be sent. Next, the I2C bus can be used to send commands to the device, set volume, band, frequency and alike.
 
-A python programm is included in the project to do all of this for you. Before running the programm, some dependencies have to be installed.
+A python program is included in the project to do all of this for you. Before running the program, some dependencies have to be installed.
 
 ### Enable I2C
 
@@ -276,9 +276,9 @@ sudo apt-get install python3-pip
 
 ### PIGPIO
 
-The control of the GPIOs for REFCLK and RST and SEN signals is done by means of the pigpio deamon. This is a low level GPIO controller that can be commanded through other programms like the python program used in this project.
+The control of the GPIOs for REFCLK and RST and SEN signals is done by means of the pigpio daemon. This is a low level GPIO controller that can be commanded through other programs like the python program used in this project.
 
-Install the deamon running the following commands:
+Install the daemon running the following commands:
 ``` bash
 sudo apt-get install pigpio
 ```
@@ -295,7 +295,7 @@ sudo systemctl enable pigpiod.service
 sudo systemctl start pigpiod.service
 ```
 
-Finally, install the python3 package to control the pigpio deamon from the program.
+Finally, install the python3 package to control the pigpio daemon from the program.
 
 ``` bash
 sudo apt-get install python3-pigpio
@@ -339,6 +339,6 @@ Now, you can also try piping directly the audio from the radio receiver to the s
 ``` bash
  arecord -c2 -r 48000 -f S32_LE -t wav -V stereo | sudo aplay
 ```
-The python software allows seeking radio stations by using left and right arrows. The up and down arrows allow changing the volume tin the mixer. The PS filed (Radio Station) and RadioText field of the RDS signal, if available, is also shown under the tuned frequency.
+The python software allows seeking radio stations by using left and right arrows. The up and down arrows allow changing the volume tin the mixer. The PS field (Radio Station) and RadioText field of the RDS signal, if available, is also shown under the tuned frequency.
 
 ![Radio Receiver Software](img/RadioReceiverSw.png)
