@@ -1,13 +1,14 @@
 import alsaaudio
 from .si4731 import Si4731
+import time
 
-def player_main(player_q, tui_q):
+def player_main(player_q, tui_q, sio, freq):
     mixer = alsaaudio.Mixer()
     volume = mixer.getvolume()[0]
 
     radio=Si4731()
     radio.set_volume(63)    # Radio at 100% of volume
-    radio.fm_tune(97.2)     # Initial station
+    radio.fm_tune(freq)     # Initial station
     radio.get_rsq_status()
 
     run_app=True
@@ -23,17 +24,17 @@ def player_main(player_q, tui_q):
         # Check if msg in queue
         while player_q.empty() is False:
             player_q_msg = player_q.get()
-            if (player_q_msg is 'seek_up'):
+            if (player_q_msg == 'seek_up'):
                 radio.fm_seek_up()
-            if (player_q_msg is 'seek_down'):
+            if (player_q_msg == 'seek_down'):
                 radio.fm_seek_down()
-            if (player_q_msg is 'vol_up'):
+            if (player_q_msg == 'vol_up'):
                 if (volume<95):
                     volume=volume+5
                 else:
                     volume=100
                 mixer.setvolume(volume)
-            if (player_q_msg is 'vol_down'):
+            if (player_q_msg == 'vol_down'):
                 if (volume > 5):
                     volume = volume - 5
                 else:
@@ -43,4 +44,4 @@ def player_main(player_q, tui_q):
                 run_app=False
 
         # Update TUI
-        tui_q.put([radio, volume])
+        tui_q.put(['radiovol', radio, volume])

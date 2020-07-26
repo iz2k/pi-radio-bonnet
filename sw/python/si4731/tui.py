@@ -39,8 +39,11 @@ def TUI_main(tui_q, player_q):
             run_app = False
 
         while tui_q.empty() is False:
-            [radio, volume]= tui_q.get()
-            refresh_TUI(stdscr, radio, volume)
+            [msg, radio, volume]= tui_q.get()
+            if msg == 'radiovol':
+                refresh_TUI(stdscr, radio, volume)
+            if msg == 'quit':
+                run_app = False
 
     # End APP
     stdscr.keypad(False)

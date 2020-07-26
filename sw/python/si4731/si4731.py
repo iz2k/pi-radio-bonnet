@@ -129,203 +129,266 @@ class Si4731:
         self.logger.debug("I2C bus open")
 
     def write_cmd(self, cmd, args):
-        # Wait Clear To Send flag
-        self.wait_cts()
-        # Write command and arguments to i2c bus
-        self.i2c.write_i2c_block_data(self.HW.I2C_ADDRESS.value, cmd.value, args)
-        #self.logger.debug("Command sent: " + cmd.name + ", arguments: " + str(args))
+        try:
+            # Wait Clear To Send flag
+            self.wait_cts()
+            # Write command and arguments to i2c bus
+            self.i2c.write_i2c_block_data(self.HW.I2C_ADDRESS.value, cmd.value, args)
+            #self.logger.debug("Command sent: " + cmd.name + ", arguments: " + str(args))
+        except:
+            pass
 
     def read_cmd(self, cmd, nbytes):
-        # Wait Clear To Send flag
-        self.wait_cts()
-        # Write command and read data from i2c bus
-        return self.i2c.read_i2c_block_data(self.HW.I2C_ADDRESS.value, cmd.value, nbytes)
+        try:
+            # Wait Clear To Send flag
+            self.wait_cts()
+            # Write command and read data from i2c bus
+            return self.i2c.read_i2c_block_data(self.HW.I2C_ADDRESS.value, cmd.value, nbytes)
+        except:
+            pass
 
     def write_read_cmd(self, cmd, write, nread):
-        # Write command and ACK INT
-        wr=[cmd.value]
-        wr.extend(write)
-        write = smbus2.i2c_msg.write(self.HW.I2C_ADDRESS.value, wr)
-        # Read status
-        read = smbus2.i2c_msg.read(self.HW.I2C_ADDRESS.value, nread)
-        # Execute I2C operation
-        self.i2c.i2c_rdwr(write, read)
-        # Convert response to list
-        return list(read)
+        try:
+            # Write command and ACK INT
+            wr=[cmd.value]
+            wr.extend(write)
+            write = smbus2.i2c_msg.write(self.HW.I2C_ADDRESS.value, wr)
+            # Read status
+            read = smbus2.i2c_msg.read(self.HW.I2C_ADDRESS.value, nread)
+            # Execute I2C operation
+            self.i2c.i2c_rdwr(write, read)
+            # Convert response to list
+            return list(read)
+        except:
+            pass
 
 
     def get_status(self):
-        return self.i2c.read_byte(self.HW.I2C_ADDRESS.value)
+        try:
+            return self.i2c.read_byte(self.HW.I2C_ADDRESS.value)
+        except:
+            pass
 
     def wait_cts(self):
-        while not self.get_status() & self.FLAGS.CTS.value:
-            time.sleep(0.001)
+        try:
+            while not self.get_status() & self.FLAGS.CTS.value:
+                time.sleep(0.01)
+        except:
+            pass
 
     def get_int_status(self, intFlag):
-        self.write_cmd(self.CMDSET.GET_INT_STATUS, [])
-        if self.get_status() & intFlag.value:
-            return True
-        else:
-            return False
+        try:
+            self.write_cmd(self.CMDSET.GET_INT_STATUS, [])
+            if self.get_status() & intFlag.value:
+                return True
+            else:
+                return False
+        except:
+            pass
 
     def wait_int(self, interruptType):
-        #self.logger.debug("Waiting for " + interruptType.name + " interrupt...")
-        while not self.get_int_status(interruptType):
-            time.sleep(0.001)
+        try:
+            #self.logger.debug("Waiting for " + interruptType.name + " interrupt...")
+            while not self.get_int_status(interruptType):
+                time.sleep(0.001)
+        except:
+            pass
 
     def power_up(self, outmode):
-        # Create POWER_UP command
-        cmd = self.CMDSET.POWER_UP
-        args = [0x00]
-        args.extend(outmode.value.to_bytes(1, byteorder='big'))
-        # Send command
-        self.write_cmd(cmd, args)
-        self.logger.debug("Command sent: " + cmd.name + " with OUTMODE: " + outmode.name + " | " + str(args))
+        try:
+            # Create POWER_UP command
+            cmd = self.CMDSET.POWER_UP
+            args = [0x00]
+            args.extend(outmode.value.to_bytes(1, byteorder='big'))
+            # Send command
+            self.write_cmd(cmd, args)
+            self.logger.debug("Command sent: " + cmd.name + " with OUTMODE: " + outmode.name + " | " + str(args))
+        except:
+            pass
 
     def get_revision(self):
-        # Send command
-        resp=self.read_cmd(self.CMDSET.GET_REV, 9)
-        partnumber = 'Si47' + str(resp[1])
-        firmware = chr(resp[2]) + '.' + chr(resp[3])
-        compfirmware = chr(resp[6]) + '.' + chr(resp[7])
-        chiprev = chr(resp[8])
-        self.logger.debug('Part Number: ' + partnumber)
-        self.logger.debug('Firmware Revision: ' + firmware)
-        self.logger.debug('Component Firmware Revision: ' + compfirmware)
-        self.logger.debug('Chip Revision: ' + chiprev)
+        try:
+            # Send command
+            resp=self.read_cmd(self.CMDSET.GET_REV, 9)
+            partnumber = 'Si47' + str(resp[1])
+            firmware = chr(resp[2]) + '.' + chr(resp[3])
+            compfirmware = chr(resp[6]) + '.' + chr(resp[7])
+            chiprev = chr(resp[8])
+            self.logger.debug('Part Number: ' + partnumber)
+            self.logger.debug('Firmware Revision: ' + firmware)
+            self.logger.debug('Component Firmware Revision: ' + compfirmware)
+            self.logger.debug('Chip Revision: ' + chiprev)
+        except:
+            pass
 
     def write_property(self, prop, val):
-        # Create SET_PROPERTY command
-        cmd = self.CMDSET.SET_PROPERTY
-        args = [0x00]
-        args.extend(prop.value.to_bytes(2, byteorder='big'))
-        args.extend(val.to_bytes(2, byteorder='big'))
-        # Send command
-        self.write_cmd(cmd, args)
-        self.logger.debug("Command sent: " + cmd.name + " with PROPERTY: " + prop.name + " and VALUE: " + str(val) + " | " + str(args))
+        try:
+            # Create SET_PROPERTY command
+            cmd = self.CMDSET.SET_PROPERTY
+            args = [0x00]
+            args.extend(prop.value.to_bytes(2, byteorder='big'))
+            args.extend(val.to_bytes(2, byteorder='big'))
+            # Send command
+            self.write_cmd(cmd, args)
+            self.logger.debug("Command sent: " + cmd.name + " with PROPERTY: " + prop.name + " and VALUE: " + str(val) + " | " + str(args))
+        except:
+            pass
 
     def init_radio(self):
-        # POWER ON
-        self.power_up(self.OUTMODE.BOTH)
-        # Get silicon revision
-        self.get_revision()
-        # REFCLK_FREQ
-        self.write_property(self.PROPS.REFCLK_FREQ, self.HW.REFCLK_FREQ.value)
-        # REFCLK_PRESCALE
-        self.write_property(self.PROPS.REFCLK_PRESCALE, 1)
-        # I2S output mode
-        self.write_property(self.PROPS.DIGITAL_OUTPUT_FORMAT, self.OUTMODE.BITWIDTH24.value)
-        # Sample rate 48000
-        self.write_property(self.PROPS.DIGITAL_OUTPUT_SAMPLE_RATE, 48000)
-        # Configure RDS interrupt source
-        self.write_property(self.PROPS.FM_RDS_INT_SOURCE, self.FM_RDS_FLAGS.RDSRECV.value)
-        # Set minimum RDS data for interrupt
-        self.write_property(self.PROPS.FM_RDS_INT_FIFO_COUNT, 4)
-        # Set accepted RDS data
-        self.write_property(self.PROPS.FM_RDS_CONFIG, self.FM_RDS_FLAGS.NOERRORS.value)
+        try:
+            # POWER ON
+            self.power_up(self.OUTMODE.BOTH)
+            # Get silicon revision
+            self.get_revision()
+            # REFCLK_FREQ
+            self.write_property(self.PROPS.REFCLK_FREQ, self.HW.REFCLK_FREQ.value)
+            # REFCLK_PRESCALE
+            self.write_property(self.PROPS.REFCLK_PRESCALE, 1)
+            # I2S output mode
+            self.write_property(self.PROPS.DIGITAL_OUTPUT_FORMAT, self.OUTMODE.BITWIDTH24.value)
+            # Sample rate 48000
+            self.write_property(self.PROPS.DIGITAL_OUTPUT_SAMPLE_RATE, 48000)
+            # Configure RDS interrupt source
+            self.write_property(self.PROPS.FM_RDS_INT_SOURCE, self.FM_RDS_FLAGS.RDSRECV.value)
+            # Set minimum RDS data for interrupt
+            self.write_property(self.PROPS.FM_RDS_INT_FIFO_COUNT, 4)
+            # Set accepted RDS data
+            self.write_property(self.PROPS.FM_RDS_CONFIG, self.FM_RDS_FLAGS.NOERRORS.value)
+        except:
+            pass
 
     def set_volume(self, vol):
-        # Volume value goes from 0 to 63
-        if 0 <= vol <= 63:
-            self.logger.debug("Setting volume to " + str(vol) + " ("+str(int(vol*100/63))+"%)")
-            self.write_property(self.PROPS.RX_VOLUME, vol)
-        else:
-            self.logger.warning("Volume out of range. Please set a value between 0 and 63")
+        try:
+            # Volume value goes from 0 to 63
+            if 0 <= vol <= 63:
+                self.logger.debug("Setting volume to " + str(vol) + " ("+str(int(vol*100/63))+"%)")
+                self.write_property(self.PROPS.RX_VOLUME, vol)
+            else:
+                self.logger.warning("Volume out of range. Please set a value between 0 and 63")
+        except:
+            pass
 
     def fm_tune(self, freq_MHz):
-        # Create FM_TUNE_FREQ command
-        cmd = self.CMDSET.FM_TUNE_FREQ
-        args = [0x00]
-        args.extend(int((freq_MHz*100)).to_bytes(2, byteorder='big'))
-        args.extend([0x00, 0x00])
-        # Send command
-        self.write_cmd(cmd, args)
-        self.logger.debug("Command sent: " + cmd.name + " with FREQUENCY: " + str(freq_MHz) + " | " + str(args))
-        self.wait_tune_done()
+        try:
+            # Create FM_TUNE_FREQ command
+            cmd = self.CMDSET.FM_TUNE_FREQ
+            args = [0x00]
+            args.extend(int((freq_MHz*100)).to_bytes(2, byteorder='big'))
+            args.extend([0x00, 0x00])
+            # Send command
+            self.write_cmd(cmd, args)
+            self.logger.debug("Command sent: " + cmd.name + " with FREQUENCY: " + str(freq_MHz) + " | " + str(args))
+            self.wait_tune_done()
+        except:
+            pass
 
     def fm_seek_up(self):
-        # Create FM_TUNE_FREQ command
-        cmd = self.CMDSET.FM_SEEK_START
-        args = [self.SEEKMODE.UD_UP.value + self.SEEKMODE.WH_WRAP.value]
-        # Send command
-        self.write_cmd(cmd, args)
-        self.logger.debug("Command sent: " + cmd.name + " | " + str(args))
-        self.wait_tune_done()
+        try:
+            # Create FM_TUNE_FREQ command
+            cmd = self.CMDSET.FM_SEEK_START
+            args = [self.SEEKMODE.UD_UP.value + self.SEEKMODE.WH_WRAP.value]
+            # Send command
+            self.write_cmd(cmd, args)
+            self.logger.debug("Command sent: " + cmd.name + " | " + str(args))
+            self.wait_tune_done()
+        except:
+            pass
 
     def fm_seek_down(self):
-        # Create FM_TUNE_FREQ command
-        cmd = self.CMDSET.FM_SEEK_START
-        args = [self.SEEKMODE.UD_DOWN.value + self.SEEKMODE.WH_WRAP.value]
-        # Send command
-        self.write_cmd(cmd, args)
-        self.logger.debug("Command sent: " + cmd.name + " | " + str(args))
-        self.wait_tune_done()
+        try:
+            # Create FM_TUNE_FREQ command
+            cmd = self.CMDSET.FM_SEEK_START
+            args = [self.SEEKMODE.UD_DOWN.value + self.SEEKMODE.WH_WRAP.value]
+            # Send command
+            self.write_cmd(cmd, args)
+            self.logger.debug("Command sent: " + cmd.name + " | " + str(args))
+            self.wait_tune_done()
+        except:
+            pass
 
     def wait_tune_done(self):
-        # Reset RDS data
-        self.rds.reset()
-        # Wait TUNE DONE interrupt
-        self.wait_int(self.FLAGS.INTACK)
-        self.logger.debug("Tuning done!")
-        # ACK Interrupt and read status
-        self.get_tune_status()
+        try:
+            # Reset RDS data
+            self.rds.reset()
+            # Wait TUNE DONE interrupt
+            self.wait_int(self.FLAGS.INTACK)
+            self.logger.debug("Tuning done!")
+            # ACK Interrupt and read status
+            self.get_tune_status()
+        except:
+            pass
 
     def get_tune_status(self):
-        # Send FM_TUNE_STATUS command, ACK INT, and read 8 bytes
-        resp=self.write_read_cmd(self.CMDSET.FM_TUNE_STATUS, [self.FLAGS.INTACK.value], 8)
+        try:
+            # Send FM_TUNE_STATUS command, ACK INT, and read 8 bytes
+            resp=self.write_read_cmd(self.CMDSET.FM_TUNE_STATUS, [self.FLAGS.INTACK.value], 8)
 
-        # Process response
-        self.station.Valid = resp[1] & 0x01
-        self.station.Frequency = ((resp[2]<<8) | resp[3])/100
-        self.station.RSSI = resp[4]
-        self.station.SNR = resp[5]
-        self.station.Multipath = resp[6]
+            # Process response
+            self.station.Valid = resp[1] & 0x01
+            self.station.Frequency = ((resp[2]<<8) | resp[3])/100
+            self.station.RSSI = resp[4]
+            self.station.SNR = resp[5]
+            self.station.Multipath = resp[6]
 
-        # Print info
-        self.logger.debug('Valid freq.: ' + str(self.station.Valid))
-        self.logger.debug('Fequency: ' + str(self.station.Frequency))
-        self.logger.debug('RSSI: ' + str(self.station.RSSI))
-        self.logger.debug('SNR: ' + str(self.station.SNR))
-        self.logger.debug('Multipath: ' + str(self.station.Multipath))
+            # Print info
+            self.logger.debug('Valid freq.: ' + str(self.station.Valid))
+            self.logger.debug('Fequency: ' + str(self.station.Frequency))
+            self.logger.debug('RSSI: ' + str(self.station.RSSI))
+            self.logger.debug('SNR: ' + str(self.station.SNR))
+            self.logger.debug('Multipath: ' + str(self.station.Multipath))
+        except:
+            pass
 
 
     def get_rsq_status(self):
-        # Send FM_TUNE_STATUS command, ACK INT, and read 8 bytes
-        resp=self.write_read_cmd(self.CMDSET.FM_RSQ_STATUS, [0], 8)
+        try:
+            # Send FM_TUNE_STATUS command, ACK INT, and read 8 bytes
+            resp=self.write_read_cmd(self.CMDSET.FM_RSQ_STATUS, [0], 8)
 
-        # Process response
-        self.station.Valid = resp[2] & 0x01
-        self.station.Pilot = (resp[3] & 0x80) >> 7
-        self.station.Stblend = resp[3] & 0x7F
-        self.station.RSSI = resp[4]
-        self.station.SNR = resp[5]
-        self.station.Multipath = resp[6]
-        self.station.Freq_offset = resp[7]
+            # Process response
+            self.station.Valid = resp[2] & 0x01
+            self.station.Pilot = (resp[3] & 0x80) >> 7
+            self.station.Stblend = resp[3] & 0x7F
+            self.station.RSSI = resp[4]
+            self.station.SNR = resp[5]
+            self.station.Multipath = resp[6]
+            self.station.Freq_offset = resp[7]
 
-        # Print info
-        self.logger.debug('Valid freq.: ' + str(self.station.Valid))
-        self.logger.debug('Pilot: ' + str(self.station.Pilot))
-        self.logger.debug('Stereo Blend: ' + str(self.station.Stblend))
-        self.logger.debug('RSSI: ' + str(self.station.RSSI))
-        self.logger.debug('SNR: ' + str(self.station.SNR))
-        self.logger.debug('Multipath: ' + str(self.station.Multipath))
-        self.logger.debug('Freq. offset: ' + str(self.station.Freq_offset))
+            # Print info
+            self.logger.debug('Valid freq.: ' + str(self.station.Valid))
+            self.logger.debug('Pilot: ' + str(self.station.Pilot))
+            self.logger.debug('Stereo Blend: ' + str(self.station.Stblend))
+            self.logger.debug('RSSI: ' + str(self.station.RSSI))
+            self.logger.debug('SNR: ' + str(self.station.SNR))
+            self.logger.debug('Multipath: ' + str(self.station.Multipath))
+            self.logger.debug('Freq. offset: ' + str(self.station.Freq_offset))
+        except:
+            pass
 
     def wait_rds(self):
-        self.wait_int(self.FLAGS.RDSINT)
+        try:
+            self.wait_int(self.FLAGS.RDSINT)
+        except:
+            pass
 
     def check_rds(self):
-        return self.get_int_status(self.FLAGS.RDSINT)
+        try:
+            return self.get_int_status(self.FLAGS.RDSINT)
+        except:
+            pass
 
     def get_rds_status(self):
-        # Send GET_RDS_STATUS command, ACK INT, and read 8 bytes
-        resp=self.write_read_cmd(self.CMDSET.GET_RDS_STATUS, [self.FLAGS.INTACK.value], 13)
-        fifoused=resp[3]
-        blocka=resp[4]*256 + resp[5]
-        blockb=resp[6]*256 + resp[7]
-        blockc=resp[8]*256 + resp[9]
-        blockd=resp[10]*256 + resp[11]
-        self.rds.process_rds_blocks(blocka, blockb, blockc, blockd)
+        try:
+            # Send GET_RDS_STATUS command, ACK INT, and read 8 bytes
+            resp=self.write_read_cmd(self.CMDSET.GET_RDS_STATUS, [self.FLAGS.INTACK.value], 13)
+            fifoused=resp[3]
+            blocka=resp[4]*256 + resp[5]
+            blockb=resp[6]*256 + resp[7]
+            blockc=resp[8]*256 + resp[9]
+            blockd=resp[10]*256 + resp[11]
+            self.rds.process_rds_blocks(blocka, blockb, blockc, blockd)
+        except:
+            pass
 
 
 
