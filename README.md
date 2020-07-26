@@ -17,7 +17,7 @@ The I2S audio interface is used for all devices, where the Pi acts as the master
 In order to use the Pi Radio Bonnet, you will need to enable I2S audio, I2C control and install some software pedendencies for the radio controller software to work. You can do it the easy way executing the following script:
 
 ``` bash
-wget https://github.com/iz2k/pi-radio-bonnet/blob/master/sw/install-pi-radio-bonnet.sh | bash
+wget -O - https://raw.githubusercontent.com/iz2k/pi-radio-bonnet/master/sw/install-pi-radio-bonnet.sh | bash
 ```
 
 Or you can do it the hard way following this instructions:
