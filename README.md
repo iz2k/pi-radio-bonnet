@@ -14,160 +14,29 @@ The I2S audio interface is used for all devices, where the Pi acts as the master
 
 ## Raspberry Pi setup
 
-In order to use the Pi Radio Bonnet, the following configurations have to be done in the Raspberry Pi OS:
+In order to use the Pi Radio Bonnet, you will need to enable I2S audio, I2C control and install some software pedendencies for the radio controller software to work. You can do it the easy way executing the following script:
+
+``` bash
+wget xxxx | bash
+```
+
+Or you can do it the hard way following this instructions:
 
 ### Enable I2S
 
 ``` bash
 sudo nano /boot/config.txt
- -> dtparam=i2s=on # uncomment 
-sudo reboot
+ -> dtparam=i2s=on 		# uncomment or add
+ -> dtoverlay=i2s-mmap 	# uncomment or add
 ```
 
-### Compile and install I2S input device driver
+### Enable I2S soundcard
 
-For simplicity, the already existing driver for the I2S microphone ICS43432 from Invensense has been used. In order to compile it, you will need to install the kernel-headers first:
+For simplicity, we will use the already available soundcard driver from GoogleVoiceHat. This souncard includes both, I2S stereo output DAC and I2S stereo input microphone and the driver works flawlessly. The driver is already compiled and included in Raspberry Pi OS (AKA Raspian). All we have to do is enable it adding a Device Tree Overlay.
 
-``` bash
-sudo apt-get install raspberrypi-kernel-headers
-```
-Then just download the driver source and compile it:
-``` bash
-mkdir ics43432
-cd ics43432
-wget https://raw.githubusercontent.com/raspberrypi/linux/rpi-$(uname -r | cut -d'.' -f1,2).y/sound/soc/codecs/ics43432.c
-echo 'obj-m := 'ics43432'.o' > Makefile
-make -C /lib/modules/$(uname -r)/build M=$(pwd) modules
-```
-Finally install it on the system:
-``` bash
-sudo insmod ics43432.ko
-```
-If you get an error message about undefined symbols on the module, you may have missed rebooting the system after enabling I2S on the Pi. Just reboot and try to install it again.
-
-You can test if the module was installed correctly executing the following command:
-``` bash
-lsmod | grep ics43432
-```
-You should see some modules with the ics43432 name on it loaded.
-
-### Create dual I2S sound-card overlay
-
-Now you need to create a sound-card overlay pointing to the i2s audio drivers. create the overlay configuration file:
-``` bash
-nano i2s-soundcard-overlay.dts
-```
-And paste the following into it:
-```
-/dts-v1/;
-/plugin/;
-/ {
-   compatible = "brcm,bcm2708";
-   fragment@0 {
-       target = <&i2s>;
-       __overlay__ {
-           status = "okay";
-       };
-   };
-   fragment@1 {
-       target-path = "/";
-       __overlay__ {
-           codec_mic: card-codec {
-               #sound-dai-cells = <0>;
-               compatible = "invensense,ics43432";
-               status = "okay";
-           };
-           codec_amp: pcm5102a-codec {
-               #sound-dai-cells = <0>;
-               compatible = "ti,pcm5102a";
-               status = "okay";
-           };
-       };
-   };
-   fragment@2 {
-       target = <&sound>;
-       master_overlay: __dormant__ {
-           compatible = "simple-audio-card";
-           simple-audio-card,format = "i2s";
-           simple-audio-card,name = "soundcard";
-           simple-audio-card,bitclock-master = <&dailink0_master>;
-           simple-audio-card,frame-master = <&dailink0_master>;
-           status = "okay";
-           simple-audio-card,cpu {
-               sound-dai = <&i2s>;
-           };
-           dailink0_master: simple-audio-card,codec {
-               sound-dai = <&codec_mic>;
-           };
-       };
-   };
-   fragment@3 {
-       target = <&sound>;
-       slave_overlay: __overlay__ {
-               compatible = "simple-audio-card";
-               simple-audio-card,format = "i2s";
-               simple-audio-card,name = "soundcard";
-               status = "okay";
-               simple-audio-card,dai-link@0 {
-                   reg = <0>;
-                   format = "i2s";
-                   cpu {
-                       sound-dai = <&i2s>;
-                   };
-                   codec {
-                       sound-dai = <&codec_mic>;
-                   };
-               };
-               simple-audio-card,dai-link@1 {
-                   reg = <1>;
-                   format = "i2s";
-                   cpu {
-                       sound-dai = <&i2s>;
-                   };
-                   codec {
-                       sound-dai = <&codec_amp>;
-                   };
-               };
-       };
-   };
-   __overrides__ {
-       alsaname = <&master_overlay>,"simple-audio-card,name",
-                   <&slave_overlay>,"simple-audio-card,name";
-       master = <0>,"=2!3";
-   };
-};
-```
-
-Now compile the overlay itself and copy it to the system. Don't care about the warnings during compilation.
-``` bash
-dtc -@ -I dts -O dtb -o i2s-soundcard.dtbo i2s-soundcard-overlay.dts
-sudo cp i2s-soundcard.dtbo /boot/overlays
-```
-
-Finally, enable the new overlay in the boot configuration:
 ``` bash
 sudo nano /boot/config.txt
- -> dtparam=i2s=on      # keep uncommented
- -> #dtparam=audio=on   # comment
- -> dtdebug=1           # add for debugging at boot dmesg
- -> dtoverlay=i2s-soundcard,alsaname=sndrpisimplecar # add
-sudo reboot
-```
-
-You should now already see the new playback and capture devices by running:
-``` bash
-aplay -l
-**** List of PLAYBACK Hardware Devices ****
-card 0: sndrpisimplecar [sndrpisimplecar], device 0: bcm2835-i2s-pcm5102a-hifi pcm5102a-hifi-0 [bcm2835-i2s-pcm5102a-hifi pcm5102a-hifi-0]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
-```
-``` bash
-arecord -l
-**** List of CAPTURE Hardware Devices ****
-card 0: sndrpisimplecar [sndrpisimplecar], device 1: bcm2835-i2s-ics43432-hifi ics43432-hifi-1 [bcm2835-i2s-ics43432-hifi ics43432-hifi-1]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
+ -> dtoverlay=googlevoicehat-soundcard 		# uncomment or add
 ```
 
 ### Add ALSA configuration
@@ -179,78 +48,36 @@ sudo nano /etc/asound.conf
 
 And paste the following into it:
 ```
+pcm.speaker {
+	type softvol
+	slave.pcm dmix
+	control {
+		name Master
+		card 0
+	}
+}
+
+pcm.mic {
+	type route
+	slave.pcm dsnoop
+	ttable {
+		0.0 1
+		1.1 1
+	}
+}
+
 pcm.!default {
-   type asym
-   capture.pcm "sharedmic_sv"
-   playback.pcm "speaker_sv"
-}
-pcm.sharedmic_sv {
-   type softvol
-   slave.pcm "sharedmic"
-   control {
-	name "Boost Capture Volume"
-	card sndrpisimplecar
-   }
-   min_dB -2.0
-   max_dB 20.0
-}
-pcm.sharedmic {
-   type plug
-   slave.pcm "dsnooped"
-}
-pcm.dsnooped {
-   type dsnoop
-   ipc_key 777777
-   ipc_perm 0677
-   slave {
-       pcm "hw:0,1"
-       channels 2
-       format S32_LE
-   }
-}
-pcm.speaker_sv {
-   type softvol
-   slave.pcm "speaker"
-   control.name "Speaker Volume"
-   control.card 0
-}
-pcm.speaker{
-   type plug
-   slave.pcm "dmixed"
-}
-pcm.dmixed {
-  type dmix
-  ipc_key 888888
-  ipc_perm 0677
-  #ipc_key_add_uid false
-  slave {
-    pcm "hw:0,0"
-    period_time 0
-    period_size 1024
-    buffer_size 8192
-    rate 44100
-    channels 2
-  }
-  bindings {
-       0 0
-       1 1
-  }
+	type asym
+	playback.pcm "plug:speaker"
+	capture.pcm "plug:mic"
 }
 
+ctl.!default {
+	type hw
+	card 0
+}
 ```
-With this configuration software volume control is added to both, capture and playback devices, and a channel mixer is added to the playback hardware to support simultaneous playback of multiple sources.
-
-Finally, reboot again:
-``` bash
-sudo reboot
-```
-
-And just in case, test if the speakers are working fine:
-``` bash
-speaker-test -c2 -twav -l7
-```
-
-Prior to testing the radio receiver, the device has to be initiated by software.
+With this configuration software volume control and a mixer for shared audio playbacks is added to the playback device, and a dsnoop configuration is added to the capture device so that it can also be shared amongst multiple applications.
 
 ## Control software
 
@@ -263,8 +90,7 @@ A python program is included in the project to do all of this for you. Before ru
 First, enable the I2C hardware on the Pi:
 
 ``` bash
-sudo raspi-config
- -> Interface options -> Enable I2C
+sudo raspi-config nonint do_i2c 0
 ```
 ### PIP3
 
@@ -305,13 +131,20 @@ or
 sudo pip3 install pigpio
 ```
 
-
 ### SMBUS2
 
 The python program uses the SMBUS2 package for the I2C communication. Install it as follows:
 
 ``` bash
 sudo pip3 install smbus
+```
+
+### ALSAAUDIO
+
+The python program uses the ALSAAUDIO package to control the volume of the soundcard. Install it as follows:
+
+``` bash
+sudo apt-get install python3-alsaaudio
 ```
 
 ## Usage
@@ -322,23 +155,6 @@ In order to tune the radio receiver, execute the python program.
 python3 sw/python/main.py
 ```
 
-Try recording from the capture device (stop the recording with CTRL+C):
-
-``` bash
-arecord -D default -c2 -r 48000 -f S32_LE -t wav -V steres -v test.wav
-```
-
-Play the recorded audio file:
-``` bash
-aplay test.wav
-```
-
-If everything went well, you should hear the recorded radio dial.
-
-Now, you can also try piping directly the audio from the radio receiver to the speakers:
-``` bash
- arecord -c2 -r 48000 -f S32_LE -t wav -V stereo | sudo aplay
-```
-The python software allows seeking radio stations by using left and right arrows. The up and down arrows allow changing the volume tin the mixer. The PS field (Radio Station) and RadioText field of the RDS signal, if available, is also shown under the tuned frequency.
+The python software allows seeking radio stations by using left and right arrows. The up and down arrows allow changing the volume in the mixer. The PS field (Radio Station) and RadioText field of the RDS signal, if available, is also shown under the tuned frequency.
 
 ![Radio Receiver Software](img/RadioReceiverSw.png)

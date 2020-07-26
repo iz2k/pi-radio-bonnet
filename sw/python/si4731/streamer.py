@@ -1,37 +1,21 @@
-import pyaudio
-import time
-from .mute_alsa import mute_alsa
+from subprocess import Popen, DEVNULL
+import shlex
+import os
 
-def streamer_main(conn):
-    # Change error handler for ALSA
-    mute_alsa()
+class AudioPipe:
+    def __init__(self):
+        pass
 
-    # Init PyAudio
-    pyAud = pyaudio.PyAudio()
+    def start(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        raw_cmd = 'bash ' + dir_path + '/stream.sh'
+        cmd = shlex.split(raw_cmd)
+        self.pr_stream= Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
 
-    def callback(in_data, frame_count, time_info, status):
-        return (in_data, pyaudio.paContinue)
+    def stop(self):
+        kill(self.pr_stream)
 
-    stream = pyAud.open(format=pyAud.get_format_from_width(4),
-                        channels=2,
-                        rate=48000,
-                        input=True,
-                        output=True,
-                        stream_callback=callback,
-                        output_device_index=2)
-
-    stream.start_stream()
-    conn.send('init_ok')
-
-    run_app=True
-    while(run_app):
-        time.sleep(0.1)
-        msg = conn.recv()
-        if msg == 'quit':
-            run_app=False
-
-    stream.stop_stream()
-    stream.close()
-
-    pyAud.terminate()
-
+def kill(process):
+    raw_cmd = 'pkill -P ' + str(process.pid)
+    cmd = shlex.split(raw_cmd)
+    Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)

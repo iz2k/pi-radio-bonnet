@@ -2,11 +2,11 @@ import alsaaudio
 from .si4731 import Si4731
 
 def player_main(player_q, tui_q):
-    mixer = alsaaudio.Mixer('Speaker')
+    mixer = alsaaudio.Mixer()
     volume = mixer.getvolume()[0]
 
     radio=Si4731()
-    radio.set_volume(40)    # Radio at 100% of volume
+    radio.set_volume(63)    # Radio at 100% of volume
     radio.fm_tune(97.2)     # Initial station
     radio.get_rsq_status()
 
@@ -33,14 +33,12 @@ def player_main(player_q, tui_q):
                 else:
                     volume=100
                 mixer.setvolume(volume)
-                radio.set_volume(int(volume*0.63))
             if (player_q_msg is 'vol_down'):
                 if (volume > 5):
                     volume = volume - 5
                 else:
                     volume = 0
                 mixer.setvolume(volume)
-                radio.set_volume(int(volume*0.63))
             if (player_q_msg is 'quit'):
                 run_app=False
 
