@@ -1,4 +1,5 @@
 import curses
+import time
 
 def TUI_main(tui_q, player_q):
 
@@ -44,6 +45,8 @@ def TUI_main(tui_q, player_q):
                 refresh_TUI(stdscr, radio, volume)
             if msg == 'quit':
                 run_app = False
+
+        time.sleep(0.1)
 
     # End APP
     stdscr.keypad(False)

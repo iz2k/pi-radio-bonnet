@@ -1,27 +1,51 @@
-import eventlet
-import socketio
 
-def server_main(sio, web_q, player_q):
-    app = socketio.WSGIApp(sio, static_files={
-        '/': {'content_type': 'text/html', 'filename': 'index.html'}
-    })
+def define_webserver(player_q):
+    import eventlet
 
-    @sio.event
-    def connect(sid, environ):
-        print('connect ', sid)
+    # Monkey_Patch eventlet to support threads
+    eventlet.monkey_patch()
 
-    @sio.event
-    def handshake(sid, data):
-        print('handshake message: ', data)
-        sio.emit('handshake', 'Hello there from python')
+    from flask import Flask, render_template, session, request
+    from flask_socketio import SocketIO
 
-    @sio.event
-    def radio(sid, data):
-        print('radio message: ', data)
+    # Create Flask_SocketIO App
+    app = Flask(__name__)
+    app.config['SECRET_KEY'] = 'secret!'
+    sio = SocketIO(app, async_mode='eventlet')
+    sio.init_app(app, cors_allowed_origins="*")
+
+
+    @app.route('/')
+    def index():
+        return 'Hola'
+
+    @sio.on('connect')
+    def onconnect_event():
+        print('Client connected!')
+
+    @sio.on('disconnect')
+    def onconnect_event():
+        print('Client disconnected!')
+
+    # Custom event
+    @sio.on('handshake')
+    def handle_handshake(data, methods=['GET', 'POST']):
+        print('Handshake received: ' + str(data))
+        print('Sending greeting.')
+        sio.emit('handshake', 'Hello there from Flask!')
+
+    # Custom event
+    @sio.on('radio')
+    def handle_radio(data, methods=['GET', 'POST']):
+        print('Radio received: ' + str(data))
         player_q.put(data)
 
-    @sio.event
-    def disconnect(sid):
-        print('disconnect ', sid)
+    return [app, sio]
 
-    eventlet.wsgi.server(eventlet.listen(('', 8081)), app)
+def shutdown_server():
+    from flask import request
+    print('shutdown server')
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
