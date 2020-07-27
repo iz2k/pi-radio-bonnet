@@ -1,4 +1,9 @@
-<h3>{{socketService.status}}</h3>
+<h3>Freq: {{socketService.radio.freq}}</h3>
+<h3>RSSI: {{socketService.radio.RSSI}}</h3>
+<h3>SNR: {{socketService.radio.SNR}}</h3>
+<h3>PS: {{socketService.radio.PS}}</h3>
+<h3>RadioTextA: {{socketService.radio.RadioTextA}}</h3>
+<h3>Vol: {{socketService.volume}}</h3>
 <button (click)=volUp($event) type=”button”>VOL +</button>
 <button (click)=volDown($event) type=”button”>VOL -</button>
 <button (click)=seekUp($event) type=”button”>NEXT</button>

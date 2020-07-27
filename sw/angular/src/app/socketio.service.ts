@@ -8,7 +8,8 @@ export class SocketioService {
   socket;
 
   public status = 0;
-  public icresult;
+  public volume;
+  public radio;
 
   constructor() {   }
 
@@ -33,10 +34,15 @@ export class SocketioService {
       console.log('Handshake received: ' + data);
     });
 
-    this.socket.on('radio', (data: string) => {
-      console.log('radio received: ' + data);
+    this.socket.on('volume', (data: bigint) => {
+      this.volume = data;
+      console.log('Volume received: ' + data);
     });
 
+    this.socket.on('radio', (data: object) => {
+      this.radio = data;
+      console.log('Radio received: ' + data);
+    });
 
   }
 }

@@ -389,7 +389,15 @@ class Si4731:
             self.rds.process_rds_blocks(blocka, blockb, blockc, blockd)
         except:
             pass
-
+    def get_info_obj(self):
+        obj = {
+            'freq' : self.station.Frequency,
+            'SNR' : self.station.SNR,
+            'RSSI' : self.station.RSSI,
+            'PS' : self.rds.PS.string,
+            'RadioTextA' : self.rds.RadioTextA.string
+        }
+        return obj
 
 
 

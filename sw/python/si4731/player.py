@@ -27,10 +27,8 @@ def player_main(player_q, tui_q, sio, freq):
                 player_q_msg = player_q.get()
                 if (player_q_msg == 'seek_up'):
                     radio.fm_seek_up()
-                    sio.emit('handshake', 'fmup')
                 if (player_q_msg == 'seek_down'):
                     radio.fm_seek_down()
-                    sio.emit('handshake', 'down')
                 if (player_q_msg == 'vol_up'):
                     if (volume<95):
                         volume=volume+5
@@ -48,7 +46,8 @@ def player_main(player_q, tui_q, sio, freq):
 
             # Update TUI
             tui_q.put(['radiovol', radio, volume])
-
+            sio.emit('radio', radio.get_info_obj())
+            sio.emit('volume', volume)
             time.sleep(0.1)
     except:
         pass
