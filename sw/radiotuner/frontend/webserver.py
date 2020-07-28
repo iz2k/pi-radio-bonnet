@@ -1,3 +1,4 @@
+from flask import send_from_directory
 
 def define_webserver(player_q):
     import eventlet
@@ -9,15 +10,16 @@ def define_webserver(player_q):
     from flask_socketio import SocketIO
 
     # Create Flask_SocketIO App
-    app = Flask(__name__)
+    app = Flask(__name__, static_url_path='')
     app.config['SECRET_KEY'] = 'secret!'
     sio = SocketIO(app, async_mode='eventlet')
     sio.init_app(app, cors_allowed_origins="*")
 
-
     @app.route('/')
-    def index():
-        return 'Hola'
+    def root():
+        print('accessing root')
+        return send_from_directory('web/', 'index.html')
+
 
     @sio.on('connect')
     def onconnect_event():

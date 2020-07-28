@@ -11,6 +11,8 @@ def player_main(player_q, tui_q, sio, freq):
     radio.fm_tune(freq)     # Initial station
     radio.get_rsq_status()
 
+    ui_update_cnt = 0
+
     try:
         run_app=True
         while(run_app):
@@ -52,9 +54,12 @@ def player_main(player_q, tui_q, sio, freq):
                     run_app=False
 
             # Update TUI
-            tui_q.put(['radiovol', radio, volume])
-            sio.emit('radio', radio.get_info_obj())
-            sio.emit('volume', volume)
-            time.sleep(0.1)
+            ui_update_cnt = ui_update_cnt + 1
+            if ui_update_cnt > 10:
+                tui_q.put(['radiovol', radio, volume])
+                sio.emit('radio', radio.get_info_obj())
+                sio.emit('volume', volume)
+                ui_update_cnt = 0
+            time.sleep(0.01)
     except:
         pass
