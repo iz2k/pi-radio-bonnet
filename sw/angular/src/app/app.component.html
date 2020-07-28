@@ -2,7 +2,9 @@
   <h1>Pi-Radio-Bonnet Web Player</h1>
 </div>
 
-<div class="row">
+<ngx-spinner *ngIf="socketService.connectedToServer == false"> Waiting for server</ngx-spinner>
+
+<div class="row"*ngIf="socketService.connectedToServer">
   <div class="col-10"></div>
   <div class="col-10">
     <button mat-button (click)=seekDown($event)>
@@ -20,19 +22,19 @@
   <div class="col-10"></div>
 </div>
 
-<div class="row">
+<div class="row"*ngIf="socketService.connectedToServer">
   <div class="col-100 radio_ps">
     {{socketService.radio.PS}}
   </div>
 </div>
 
-<div class="row">
+<div class="row"*ngIf="socketService.connectedToServer">
   <div class="col-100 radio_ta">
     {{socketService.radio.RadioTextA}}
   </div>
 </div>
 
-<div class="row">
+<div class="row"*ngIf="socketService.connectedToServer">
   <div class="col-10"></div>
   <div class="col-30">
     <ngx-gauge type=arch
@@ -65,7 +67,7 @@
   <div class="col-10"></div>
 </div>
 
-<div class="row">
+<div class="row"*ngIf="socketService.connectedToServer">
   <div class="col-100">
     <div class="layer1">
       <i class="material-icons">volume_down</i>

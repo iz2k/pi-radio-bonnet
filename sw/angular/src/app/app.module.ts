@@ -5,8 +5,9 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {MatSliderModule} from '@angular/material/slider';
 import {NgxGaugeModule} from 'ngx-gauge';
-import {MatIconModule} from "@angular/material/icon";
-import {MatButtonModule} from "@angular/material/button";
+import {MatIconModule} from '@angular/material/icon';
+import {MatButtonModule} from '@angular/material/button';
+import {NgxSpinnerModule} from 'ngx-spinner';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import {MatButtonModule} from "@angular/material/button";
     MatSliderModule,
     NgxGaugeModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    NgxSpinnerModule
   ],
   providers: [],
   bootstrap: [AppComponent]

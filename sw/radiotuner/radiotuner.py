@@ -6,6 +6,7 @@ from frontend.webserver import define_webserver
 from threading import Thread
 from queue import Queue
 import argparse
+import socket
 
 # Parse arguments
 parser = argparse.ArgumentParser(description='Tune FM radio.')
@@ -13,8 +14,13 @@ parser.add_argument(metavar='freq', type=float, dest='freq',
                     help='the tune frequency in MHz')
 
 parser.add_argument("-ui", default='none', help=" select User Interface none/terminal/web")
+parser.add_argument("-port", default='8081', help=" port used for web UI")
 
 args = parser.parse_args()
+
+if args.ui != 'none' and args.ui != 'terminal' and args.ui != 'web':
+    print('Invalid UI. Please use: none | terminal | web')
+    quit()
 
 # Create inter thread communication queues
 player_q = Queue()
@@ -44,10 +50,11 @@ try:
 
     # This has to go last, as sio.run is blocking
     if args.ui == 'web':
+        print('Starting Web UI on: http://' + str(socket.gethostname()) + ':' + str(args.port))
         # Start Webserver
-        sio.run(app, port=8081, host='0.0.0.0', debug=False)
+        sio.run(app, port=args.port, host='0.0.0.0', debug=False)
         # When server ends, end app
-        player_q.put('quit')
+        player_q.put(['quit',0])
 
     # Wait for threads to end
     if th_tui.is_alive():
@@ -66,7 +73,7 @@ except KeyboardInterrupt:
         th_tui.join()
 
     if th_player.is_alive():
-        player_q.put('quit')
+        player_q.put(['quit',0])
         th_player.join()
 
     if audio is not None:

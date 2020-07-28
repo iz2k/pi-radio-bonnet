@@ -118,6 +118,31 @@ echo " -> Installing Python AlsaAudio library"
 sudo apt-get -y install python3-alsaaudio
 
 echo ""
+echo "******************************"
+echo "* Installing Custom Software *"
+echo "******************************"
+echo ""
+echo " -> Removing previous versions"
+sudo rm -rf /usr/share/radiotuner
+
+echo ""
+echo " -> Downloading last version"
+wget https://github.com/iz2k/pi-radio-bonnet/raw/master/sw/release/current/radiotuner.zip
+
+echo ""
+echo " -> Extracting files"
+sudo unzip -d /usr/share radiotuner.zip
+
+echo ""
+echo " -> Making radiotuner executable"
+sudo chmod +x /usr/share/radiotuner/radiotuner.py
+
+echo ""
+echo " -> Creating symbolic link in /usr/bin"
+sudo ln -s /usr/share/radiotuner/radiotuner.py /usr/bin/radiotuner
+
+
+echo ""
 echo "***************************"
 echo "* System install finished *"
 echo "***************************"
