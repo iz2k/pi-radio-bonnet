@@ -1,0 +1,76 @@
+mat-slider {
+  width: 50%;
+}
+
+* {
+  box-sizing: border-box;
+}
+.header {
+  text-align: center;
+  position: relative;
+  background-color: black;
+  color: azure;
+}
+
+.footer {
+  text-align: center;
+  background-color: black;
+  color: azure;
+  width:100%;
+  position:absolute;
+  bottom:0;
+  left:0;
+}
+
+.row {
+  text-align: center;
+  position: relative;
+}
+
+.radio_freq {
+  color: black;
+  font-size: 50px;
+}
+
+.radio_ps {
+  color: darkblue;
+  font-size: 30px;
+}
+
+.radio_ta {
+  color: darkcyan;
+  font-size: 15px;
+}
+
+.layer1,
+.layer2 {
+  position:absolute;
+  top: 50%;
+  left: 0%;
+  width: 100%;
+}
+
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+[class*="col-"] {
+  float: left;
+  padding: 15px;
+}
+
+.col-5 {width: 5%;}
+.col-10 {width: 10%;}
+.col-20 {width: 20%;}
+.col-25 {width: 25%;}
+.col-30 {width: 30%;}
+.col-40 {width: 40%;}
+.col-50 {width: 50%;}
+.col-60 {width: 60%;}
+.col-70 {width: 70%;}
+.col-75 {width: 75%;}
+.col-80 {width: 80%;}
+.col-90 {width: 90%;}
+.col-100 {width: 100%;}

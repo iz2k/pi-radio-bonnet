@@ -16,8 +16,8 @@ export class SocketioService {
   private greeting = 'Hello there from Angular!';
 
   setupSocketConnection(): void {
-    //this.socket = io('http://' + window.location.hostname + ':8081');
-    this.socket = io('http://raspberrypi:8081/');
+    this.socket = io('http://' + window.location.hostname + ':8081');
+    //this.socket = io('http://raspberrypi:8081/');
 
     this.socket.on('connect', () => {
       console.log('JS socket connected. Sending greeting.');

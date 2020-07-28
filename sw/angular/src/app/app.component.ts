@@ -7,32 +7,32 @@ import {SocketioService} from './socketio.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'angular';
-
   constructor(public socketService: SocketioService) {}
 
   ngOnInit(): void {
     this.socketService.setupSocketConnection();
     console.log('algo!');
   }
-  handleClick(event: Event): void {
-    console.log('Click!', event);
-    this.socketService.socket.emit('handshake', 'kkmendra');
+
+  updateSetting(event): void {
+    console.log('SetVol: ', event.value);
+    this.socketService.socket.emit('radio', ['vol', event.value]);
   }
+
   volUp(event: Event): void {
     console.log('VolUp!', event);
-    this.socketService.socket.emit('radio', 'vol_up');
+    this.socketService.socket.emit('radio', ['vol_up', 0]);
   }
   volDown(event: Event): void {
-    console.log('VolUp!', event);
-    this.socketService.socket.emit('radio', 'vol_down');
+    console.log('VolDown!', event);
+    this.socketService.socket.emit('radio', ['vol_down', 0]);
   }
   seekUp(event: Event): void {
-    console.log('VolUp!', event);
-    this.socketService.socket.emit('radio', 'seek_up');
+    console.log('SeekUp!', event);
+    this.socketService.socket.emit('radio', ['seek_up', 0]);
   }
   seekDown(event: Event): void {
-    console.log('VolUp!', event);
-    this.socketService.socket.emit('radio', 'seek_down');
+    console.log('SeekDown!', event);
+    this.socketService.socket.emit('radio', ['seek_down', 0]);
   }
 }

@@ -1,10 +1,83 @@
-<h3>Freq: {{socketService.radio.freq}}</h3>
-<h3>RSSI: {{socketService.radio.RSSI}}</h3>
-<h3>SNR: {{socketService.radio.SNR}}</h3>
-<h3>PS: {{socketService.radio.PS}}</h3>
-<h3>RadioTextA: {{socketService.radio.RadioTextA}}</h3>
-<h3>Vol: {{socketService.volume}}</h3>
-<button (click)=volUp($event) type=”button”>VOL +</button>
-<button (click)=volDown($event) type=”button”>VOL -</button>
-<button (click)=seekUp($event) type=”button”>NEXT</button>
-<button (click)=seekDown($event) type=”button”>PREVIOUS</button>
+<div class="header">
+  <h1>Pi-Radio-Bonnet Web Player</h1>
+</div>
+
+<div class="row">
+  <div class="col-10"></div>
+  <div class="col-10">
+    <button mat-button (click)=seekDown($event)>
+      <mat-icon class="radio_freq">skip_previous</mat-icon>
+    </button>
+  </div>
+  <div class="col-60 radio_freq">
+    {{socketService.radio.freq}} MHz
+  </div>
+  <div class="col-10">
+    <button mat-button (click)=seekUp($event)>
+      <mat-icon class="radio_freq">skip_next</mat-icon>
+    </button>
+  </div>
+  <div class="col-10"></div>
+</div>
+
+<div class="row">
+  <div class="col-100 radio_ps">
+    {{socketService.radio.PS}}
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-100 radio_ta">
+    {{socketService.radio.RadioTextA}}
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-10"></div>
+  <div class="col-30">
+    <ngx-gauge type=arch
+           cap="butt"
+           foregroundColor="rgba(0, 0, 150, 1)"
+           value={{socketService.radio.SNR}}
+           label="SNR"
+           append="dB"
+           thick="10"
+           min="-5"
+           max="30"
+           size="100">
+    </ngx-gauge>
+  </div>
+  <div class="col-10"></div>
+  <div class="col-10"></div>
+  <div class="col-30">
+    <ngx-gauge type=arch
+           form="Flat"
+           foregroundColor="rgba(0, 150, 0, 1)"
+           value={{socketService.radio.RSSI}}
+           label="RSSI"
+           append="dB"
+           thick="10"
+           min="00"
+           max="50"
+           size="100">
+    </ngx-gauge>
+  </div>
+  <div class="col-10"></div>
+</div>
+
+<div class="row">
+  <div class="col-100">
+    <div class="layer1">
+      <i class="material-icons">volume_down</i>
+      <mat-slider (input)="updateSetting($event)" value={{socketService.volume}} style="margin-bottom: 15px; border-radius: 30px; height: 30px" ></mat-slider>
+      <i class="material-icons">volume_up</i>
+    </div>
+    <div class="layer2">
+      <h3>{{socketService.volume}} %</h3>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  by Iz2k
+</div>

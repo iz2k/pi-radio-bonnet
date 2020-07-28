@@ -25,23 +25,30 @@ def player_main(player_q, tui_q, sio, freq):
             # Check if msg in queue
             while player_q.empty() is False:
                 player_q_msg = player_q.get()
-                if (player_q_msg == 'seek_up'):
+                if (player_q_msg[0] == 'seek_up'):
                     radio.fm_seek_up()
-                if (player_q_msg == 'seek_down'):
+                if (player_q_msg[0] == 'seek_down'):
                     radio.fm_seek_down()
-                if (player_q_msg == 'vol_up'):
+                if (player_q_msg[0] == 'vol_up'):
                     if (volume<95):
                         volume=volume+5
                     else:
                         volume=100
                     mixer.setvolume(volume)
-                if (player_q_msg == 'vol_down'):
+                if (player_q_msg[0] == 'vol_down'):
                     if (volume > 5):
                         volume = volume - 5
                     else:
                         volume = 0
                     mixer.setvolume(volume)
-                if (player_q_msg is 'quit'):
+                if (player_q_msg[0] == 'vol'):
+                    volume = player_q_msg[1]
+                    if (volume > 100):
+                        volume = 100
+                    if (volume < 0):
+                        volume = 0
+                    mixer.setvolume(volume)
+                if (player_q_msg[0] is 'quit'):
                     run_app=False
 
             # Update TUI

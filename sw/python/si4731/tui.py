@@ -24,19 +24,19 @@ def TUI_main(tui_q, player_q):
     while(run_app):
         char = stdscr.getch()
         if char == 261: # RIGTH ARROW
-            player_q.put('seek_up')
+            player_q.put(['seek_up',None])
             stdscr.clear()
         if char == 260: # LEFT ARROW
-            player_q.put('seek_down')
+            player_q.put(['seek_down',None])
             stdscr.clear()
         if char == 259: # UP ARROW
-            player_q.put('vol_up')
+            player_q.put(['vol_up',None])
             stdscr.clear()
         if char == 258: # DOWN ARROW
-            player_q.put('vol_down')
+            player_q.put(['vol_down',None])
             stdscr.clear()
         if char == ord('q'): # QUIT
-            player_q.put('quit')
+            player_q.put(['quit',None])
             run_app = False
 
         while tui_q.empty() is False:
