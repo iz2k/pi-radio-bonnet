@@ -1,6 +1,6 @@
 import alsaaudio
 import time
-from .si4731 import Si4731
+from si4731.si4731 import Si4731
 
 def player_main(player_q, tui_q, sio, freq):
     mixer = alsaaudio.Mixer()

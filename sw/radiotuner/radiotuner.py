@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-from si4731.streamer import AudioPipe
-from si4731.player import player_main
-from si4731.tui import TUI_main
-from si4731.webserver import define_webserver, shutdown_server
+from backend.streamer import AudioPipe
+from backend.player import player_main
+from frontend.tui import TUI_main
+from frontend.webserver import define_webserver
 from threading import Thread
 from queue import Queue
 import argparse
