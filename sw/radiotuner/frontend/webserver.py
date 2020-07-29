@@ -10,7 +10,7 @@ def define_webserver(player_q):
     from flask_socketio import SocketIO
 
     # Create Flask_SocketIO App
-    app = Flask(__name__, static_url_path='/web')
+    app = Flask(__name__, static_folder='web', static_url_path='')
     app.config['SECRET_KEY'] = 'secret!'
     sio = SocketIO(app, async_mode='eventlet')
     sio.init_app(app, cors_allowed_origins="*")
@@ -18,8 +18,11 @@ def define_webserver(player_q):
     @app.route('/')
     def root():
         print('Serving angular frontend...')
-        return send_from_directory('web/', 'index.html')
+        return send_from_directory(app.static_folder, 'index.html')
 
+    #@app.route('/<path:path>')
+    #def send_static(path):
+    #    return send_from_directory(app.static_folder, path)
 
     @sio.on('connect')
     def onconnect_event():

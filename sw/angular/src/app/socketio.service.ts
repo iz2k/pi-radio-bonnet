@@ -14,7 +14,7 @@ export class SocketioService {
 
   setupSocketConnection(): void {
     console.log('Setting up socket connection...')
-    this.socket = io('http://' + window.location.hostname + ':8081');
+    this.socket = io('http://' + window.location.hostname + ':' + window.location.port);
     //this.socket = io('http://raspberrypi:8081/');
 
     this.socket.on('connect', () => {
