@@ -12,7 +12,7 @@ The I2S audio interface is used for all devices, where the Pi acts as the master
 ![Pi Radio Bonnet](img/PiRadioBonnet.jpg)
 ![Bonnet On Pi Zero W](img/PiRadioBonnetOnPiZeroW.jpg)
 
-## Raspberry Pi setup
+## Raspberry Pi setup (automatic)
 
 In order to use the Pi Radio Bonnet, you will need to enable I2S audio, I2C control and install some software pedendencies for the radio controller software to work. You can do it the easy way executing the following script:
 
@@ -20,7 +20,41 @@ In order to use the Pi Radio Bonnet, you will need to enable I2S audio, I2C cont
 wget -O - https://raw.githubusercontent.com/iz2k/pi-radio-bonnet/master/sw/install-pi-radio-bonnet.sh | bash
 ```
 
-Or you can do it the hard way following this instructions:
+## Usage
+
+In order to tune the radio receiver, execute the python program.
+
+### No UI
+Basic tune without UI. Just specify the frequency to tune in MHz.
+``` bash
+radiotuner 97.2
+```
+
+### Terminal UI
+Tune with TUI (Terminal User Interface). Specify the frequency to tune in MHz, and set '-ui terminal' flag.
+
+``` bash
+radiotuner 97.2 -ui terminal
+```
+
+The TUI allows seeking radio stations by using left and right arrows. The up and down arrows allow changing the volume in the mixer. The PS field (Radio Station) and RadioText field of the RDS signal, if available, is also shown under the tuned frequency.
+
+![Radio Receiver Software](img/RadioReceiverSw.png)
+
+### Web UI
+Tune with TUI (Terminal User Interface). Specify the frequency to tune in MHz, and set '-ui terminal' flag.
+
+``` bash
+radiotuner 97.2 -ui web -port 8080
+```
+
+The web UI is quite similar to the TUI, but in Angular based web application format.
+
+![Radio Receiver Software](img/WebPlayer.png)
+
+## Raspberry Pi setup (manual)
+
+If you prefer it this way, you can install everything the hard way following this instructions:
 
 ### Enable I2S
 
@@ -147,14 +181,23 @@ The python program uses the ALSAAUDIO package to control the volume of the sound
 sudo apt-get install python3-alsaaudio
 ```
 
-## Usage
+## Sopy software and create symbolic link
 
-In order to tune the radio receiver, execute the python program.
+Once everything is properly setup to launch the python software, let's copy it to your filesystem. In order to launch the radiotuner software easily, you can also create a symbolic link somewhere included in the $PATH.
 
 ``` bash
-python3 sw/python/main.py
+# Remove previous versions
+sudo rm -rf /usr/share/radiotuner
+
+# Download last version
+wget -O radiotuner.zip https://github.com/iz2k/pi-radio-bonnet/raw/master/sw/release/current/radiotuner.zip
+
+# Extract files
+sudo unzip -o -d /usr/share radiotuner.zip
+
+# Make radiotuner executable
+sudo chmod +x /usr/share/radiotuner/radiotuner.py
+
+# Create symbolic link in /usr/bin"
+sudo ln -f -s /usr/share/radiotuner/radiotuner.py /usr/bin/radiotuner
 ```
-
-The python software allows seeking radio stations by using left and right arrows. The up and down arrows allow changing the volume in the mixer. The PS field (Radio Station) and RadioText field of the RDS signal, if available, is also shown under the tuned frequency.
-
-![Radio Receiver Software](img/RadioReceiverSw.png)
