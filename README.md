@@ -181,7 +181,7 @@ The python program uses the ALSAAUDIO package to control the volume of the sound
 sudo apt-get install python3-alsaaudio
 ```
 
-## Sopy software and create symbolic link
+## Copy software and create symbolic link
 
 Once everything is properly setup to launch the python software, let's copy it to your filesystem. In order to launch the radiotuner software easily, you can also create a symbolic link somewhere included in the $PATH.
 

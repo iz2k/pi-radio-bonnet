@@ -276,7 +276,6 @@ class Si4731:
     def turn(self, onoff):
         try:
             self.on = onoff
-            print(self.on)
             # Volume value goes from 0 to 63
             if onoff == True:
                 self.set_volume(63)
