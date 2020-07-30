@@ -7,7 +7,6 @@ def player_main(player_q, tui_q, sio, freq):
     volume = mixer.getvolume()[0]
 
     radio=Si4731()
-    radio.set_volume(63)    # Radio at 100% of volume
     radio.fm_tune(freq)     # Initial station
     radio.get_rsq_status()
 
@@ -27,6 +26,10 @@ def player_main(player_q, tui_q, sio, freq):
             # Check if msg in queue
             while player_q.empty() is False:
                 player_q_msg = player_q.get()
+                if (player_q_msg[0] == 'turn_on'):
+                    radio.turn(True)
+                if (player_q_msg[0] == 'turn_off'):
+                    radio.turn(False)
                 if (player_q_msg[0] == 'seek_up'):
                     radio.fm_seek_up()
                 if (player_q_msg[0] == 'seek_down'):

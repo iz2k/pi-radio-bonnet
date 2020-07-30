@@ -74,3 +74,15 @@ mat-slider {
 .col-80 {width: 80%;}
 .col-90 {width: 90%;}
 .col-100 {width: 100%;}
+
+.mat-button{
+  width: 70px;
+  height: 70px;
+  vertical-align: center;
+}
+
+.mat-icon {
+  font-size: 50px;
+  margin-top: -25px;
+  margin-left: -25px;
+}

@@ -82,8 +82,13 @@ class Si4731:
         self.create_logger()
         self.init_hw()
         self.init_radio()
+        self.turn(True)
         self.station = self.STATION_INFO()
         self.rds = RDS()
+
+    # Deleting (Calling destructor)
+    def __del__(self):
+        self.turn(False)
 
     def create_logger(self):
         # create logger
@@ -268,6 +273,18 @@ class Si4731:
         except:
             pass
 
+    def turn(self, onoff):
+        try:
+            self.on = onoff
+            print(self.on)
+            # Volume value goes from 0 to 63
+            if onoff == True:
+                self.set_volume(63)
+            else:
+                self.set_volume(0)
+        except:
+            pass
+
     def fm_tune(self, freq_MHz):
         try:
             # Create FM_TUNE_FREQ command
@@ -395,7 +412,8 @@ class Si4731:
             'SNR' : self.station.SNR,
             'RSSI' : self.station.RSSI,
             'PS' : self.rds.PS.string,
-            'RadioTextA' : self.rds.RadioTextA.string
+            'RadioTextA' : self.rds.RadioTextA.string,
+            'on' : self.on
         }
         return obj
 

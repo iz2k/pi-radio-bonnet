@@ -118,6 +118,36 @@ echo " -> Installing Python AlsaAudio library"
 sudo apt-get -y install python3-alsaaudio
 
 echo ""
+echo "*********************************"
+echo "* Installing Audio Pipe service *"
+echo "*********************************"
+echo ""
+echo ""
+echo " -> Creating Audio Pipe Service"
+cat <<EOF | sudo tee /etc/systemd/system/audio-pipe.service
+[Unit]
+Description=Audio Pipe
+
+[Service]
+ExecStart=bash /usr/share/radiotuner/backend/stream.sh
+WorkingDirectory=/usr/share/radiotuner
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=root
+ 
+[Install]
+WantedBy=multi-user.target
+EOF
+
+echo " -> Reloading systemctl service daemons."
+sudo systemctl daemon-reload
+
+echo " -> Enabling Audio Pipe service."
+sudo systemctl enable audio-pipe.service
+sudo systemctl start audio-pipe.service
+
+echo ""
 echo "******************************"
 echo "* Installing Custom Software *"
 echo "******************************"

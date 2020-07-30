@@ -36,11 +36,11 @@ th_player = Thread(target=player_main, args=(player_q, tui_q, sio, args.freq))
 th_tui = Thread(target=TUI_main, args=(tui_q, player_q))
 
 # Create streamer (without starting it)
-audio = AudioPipe()
+#audio = AudioPipe()
 
 try:
     # Start streaming audio from Radio to Speaker
-    audio.start()
+    #audio.start()
 
     # Start player thread
     th_player.start()
@@ -64,8 +64,8 @@ try:
         th_player.join()
 
     # Stop audio stream
-    if audio is not None:
-        audio.stop()
+    #if audio is not None:
+    #    audio.stop()
 
 except KeyboardInterrupt:
     if th_tui.is_alive():
@@ -76,5 +76,5 @@ except KeyboardInterrupt:
         player_q.put(['quit',0])
         th_player.join()
 
-    if audio is not None:
-        audio.stop()
+    #if audio is not None:
+    #    audio.stop()

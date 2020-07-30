@@ -20,6 +20,15 @@ export class AppComponent {
     this.socketService.socket.emit('radio', ['vol', event.value]);
   }
 
+  turnOn(event: Event): void {
+    //console.log('VolUp!', event);
+    this.socketService.socket.emit('radio', ['turn_on', 0]);
+  }
+  turnOff(event: Event): void {
+    //console.log('VolUp!', event);
+    this.socketService.socket.emit('radio', ['turn_off', 0]);
+  }
+
   volUp(event: Event): void {
     //console.log('VolUp!', event);
     this.socketService.socket.emit('radio', ['vol_up', 0]);

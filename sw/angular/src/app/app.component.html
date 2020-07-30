@@ -49,8 +49,14 @@
            size="100">
     </ngx-gauge>
   </div>
-  <div class="col-10"></div>
-  <div class="col-10"></div>
+  <div class="col-20">
+    <button mat-button class="button-class" (click)=turnOn($event) *ngIf="socketService.radio.on == false">
+      <mat-icon style="-webkit-text-fill-color:burlywood">play_arrow</mat-icon>
+    </button>
+    <button mat-button class="button-class" (click)=turnOff($event) *ngIf="socketService.radio.on == true">
+      <mat-icon style="-webkit-text-fill-color:burlywood">stop</mat-icon>
+    </button>
+  </div>
   <div class="col-30">
     <ngx-gauge type=arch
            form="Flat"
