@@ -114,6 +114,18 @@ echo " -> Installing Python SMBUS2 library"
 sudo pip3 install smbus2
 
 echo ""
+echo " -> Installing Python Flask library"
+sudo pip3 install flask
+
+echo ""
+echo " -> Installing Python eventlet library"
+sudo pip3 install eventlet
+
+echo ""
+echo " -> Installing Python Flask library"
+sudo pip3 install flask_socketio
+
+echo ""
 echo " -> Installing Python AlsaAudio library"
 sudo apt-get -y install python3-alsaaudio
 
