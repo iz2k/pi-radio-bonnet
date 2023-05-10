@@ -30,7 +30,7 @@
     "ngx-gauge": "^1.1.0",
     "ngx-spinner": "^10.0.1",
     "rxjs": "~6.5.5",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.5.0",
     "tslib": "^2.0.0",
     "zone.js": "~0.10.3"
   },
